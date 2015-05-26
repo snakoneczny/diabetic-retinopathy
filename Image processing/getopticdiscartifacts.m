@@ -1,4 +1,4 @@
-function [opticDiscMask] = getopticdisc (retinaRGB, closingThresholdValue, opticDiscDilationSize)
+function [opticDiscMask, artifactsMask] = getopticdiscartifacts (retinaRGB, closingThresholdValue, opticDiscDilationSize, artifactMinSize)
     %% Get intensity
     subplot(1, 2, 1), imshow(retinaRGB); title('RGB');
     I = double(retinaRGB) / 255;
@@ -45,9 +45,9 @@ function [opticDiscMask] = getopticdisc (retinaRGB, closingThresholdValue, optic
     se = strel('disk', opticDiscDilationSize);
     opticDiscMask = imdilate(opticDiscMask, se);
     subplot(1, 2, 2), imshow(opticDiscMask), title('Mask');
-
-    %% Select optic disc and dilate to make sure it's big enough
-    subplot(1, 2, 1), imshow(retinaRGB), title('Before optic disc choice');
+    
+    %% Select optic disc and artifacts from mask
+    subplot(1, 3, 1), imshow(opticDiscMask), title('Before selecting');
     % Get labels and measurement
     labeledDiscMask = bwlabel(opticDiscMask);
     measurements = regionprops(opticDiscMask, 'Area', 'Perimeter');
@@ -57,19 +57,50 @@ function [opticDiscMask] = getopticdisc (retinaRGB, closingThresholdValue, optic
     allCircularities = (4 * pi * allAreas) ./ allPerimeters .^ 2;
     allCircularities(~isfinite(allCircularities)) = 0;
     % Calculate scores
-    allScores = allCircularities .* allAreas;
-    % Create image with optic disc
-    [M, Ind] = max(allScores);
-    % Mask not found work around
-    if (size(Ind) == 0)
-        Ind = 1;
+    allScores = allCircularities .^ 4 .* allAreas;
+    
+    % Find candidates for optic disc and artifacts
+    candidates = find(allAreas > artifactMinSize);
+    % Select optic disc as an element with maximum cicularity
+    maxCandidateValue = max(allScores(candidates));
+    opticDiscInd = find(allScores == maxCandidateValue);
+    % Select artifacts as rest of candidates
+    artifactsInd = candidates(candidates ~= opticDiscInd);
+    
+    % Optic disc not found
+    if (size(opticDiscInd, 1) == 0)
+        % Look for smaller one in scores
+        [~, opticDiscInd] = max(allScores);
+        % Optic disc now found, work around
+        if (size(opticDiscInd, 1) == 0)
+            opticDiscInd = -1;
+        end
     end
-    [r, c] = find(labeledDiscMask == Ind);
-    Ind = sub2ind(size(labeledDiscMask), r, c);
+    % Artifacts not found, work around
+    if (size(artifactsInd, 1) == 0)
+        artifactsInd = -1;
+    end
+    
+    % Create image with optic disc
+    s = size(labeledDiscMask);
+    [r, c] = find(labeledDiscMask == opticDiscInd);
+    ind = sub2ind(s, r, c);
     opticDiscMask = zeros(size(opticDiscMask));
-    opticDiscMask(Ind) = 1;
-    % Dilation
+    opticDiscMask(ind) = 1;
+    
+    % Create image with artifacts
+    ind = ismember(labeledDiscMask, artifactsInd);
+    artifactsMask = zeros(s);
+    artifactsMask(ind) = 1;
+    
+    % Optic disc dilation
     se = strel('disk', 6);
     opticDiscMask = imdilate(opticDiscMask, se);
-    subplot(1, 2, 2), imshow(I .* imcomplement(opticDiscMask)), title('Optic disc extracted');
+    
+    % Artifacts dilation
+    se = strel('disk', 4);
+    artifactsMask = imdilate(artifactsMask, se);
+    
+    subplot(1, 3, 2), imshow(I .* imcomplement(opticDiscMask)), title('Optic disc extracted');
+    subplot(1, 3, 3), imshow(I .* imcomplement(artifactsMask)), title('Artifacts extracted');
 end

@@ -1,6 +1,6 @@
-%% Extract exudates for one image
+%% Extract exudates from one image
 tic
-fileName = 'E:/Dev/CAD/Diabetic Retinopathy/sample/16_left.jpeg';    
+fileName = 'E:/Dev/CAD/Diabetic Retinopathy/train/216_right.jpeg';    
 % Read image
 retinaRGB = imread(fileName);
 % Resize image
@@ -13,7 +13,7 @@ exudatesMask = getexudates(retinaRGB, opticDiscMask, opticDiscDilation);
 toc
 
 %% Extract exudates for all images and save them as files
-parpool(4);  % Set workers for paraller computations
+%parpool(4);  % Set workers for paraller computations
 tic
 
 % List all images
@@ -23,11 +23,12 @@ filesRight = dir(strcat(directory, '*_right.jpeg'));
 files = [filesLeft; filesRight];
 % For each image
 i = 1;
-for file = files'
+for file = filesRight'
     fileName = strcat(directory, file.name);
     fprintf('Processing image %i / 35126, %s.\n', i, fileName);
     i = i + 1;
     
+    if (i > 0)
     % Read image
     retinaRGB = imread(fileName);
     % Resize image
@@ -37,9 +38,11 @@ for file = files'
     % Get optic disc mask
     opticDiscDilation = 10;
     exudatesMask = getexudates(retinaRGB, opticDiscMask, opticDiscDilation);
+    
     % Save the exudates
-    imwrite(exudatesMask, strrep(fileName, '.jpeg', '_exudates.jpeg'))
-
+    imwrite(exudatesMask, strrep(fileName, '.jpeg', '_exudates.png'))
+    
+    end
 end
 toc
-delete(gcp);  % Close threads pool
+%delete(gcp);  % Close threads pool

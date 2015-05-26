@@ -34,11 +34,6 @@ function exudatesMask = getexudates (retinaRGB, opticDiscMask, opticDiscDilation
     mask = imdilate(mask, se);
     subplot(1, 2, 2), imshow(mask); title('Thresholded and dilated');
 
-    %% Flood fill
-    subplot(1, 2, 1), imshow(mask); title('Before filling');
-    maskFilled = imfill(mask, 'holes');
-    subplot(1, 2, 2), imshow(maskFilled); title('Flood filled');
-
     %% Create region of interest
     retinaMask = im2bw(I, 0.2);
     retinaMask = imfill(retinaMask, 'holes');
@@ -55,15 +50,20 @@ function exudatesMask = getexudates (retinaRGB, opticDiscMask, opticDiscDilation
     set(h, 'AlphaData', retinaMask)
 
     %% Remove circular shape around retina
-    subplot(1, 2, 1), imshow(maskFilled); title('Before removing circular shape around');
-    maskOfCenter = maskFilled .* retinaMask;
+    subplot(1, 2, 1), imshow(mask); title('Before removing circular shape around');
+    maskOfCenter = mask .* retinaMask;
     subplot(1, 2, 2), imshow(maskOfCenter); title('Only region of interest');
+    
+    %% Flood fill
+    subplot(1, 2, 1), imshow(maskOfCenter); title('Before filling');
+    maskFilled = imfill(maskOfCenter, 'holes');
+    subplot(1, 2, 2), imshow(maskFilled); title('Flood filled');
 
     %% Remove optic disc
-    subplot(1, 2, 1), imshow(maskOfCenter); title('Before optic disc elimination');
+    subplot(1, 2, 1), imshow(maskFilled); title('Before optic disc elimination');
     se = strel('disk', opticDiscDilation);
     opticDiscMask = imdilate(opticDiscMask, se);
-    maskOfInterest = uint8(maskOfCenter) .* imcomplement(opticDiscMask);
+    maskOfInterest = uint8(maskFilled) .* imcomplement(opticDiscMask);
     subplot(1, 2, 2), imshow(maskOfInterest); title('Without optic disc');
 
     %% Overlay mask on the original image
