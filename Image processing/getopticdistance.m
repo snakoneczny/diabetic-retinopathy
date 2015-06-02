@@ -1,5 +1,4 @@
 function [ opticDistance ] = getopticdistance( opticDisc )
-    % opticDisc = im2bw(opticDisc, 0.1);
     center = size(opticDisc) / 2;
     measurements = regionprops(opticDisc, 'Area', 'Centroid');
     if (size(measurements, 1) == 0)

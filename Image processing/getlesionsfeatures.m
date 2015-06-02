@@ -1,11 +1,8 @@
 function [ features ] = getlesionsfeatures( lesions, opticDisc )
-    % Make an image logical
-    % lesions = im2bw(lesions, 0.1);
-    % opticDisc = im2bw(opticDisc, 0.01);
-    
+
     % Get measurements and check wether lesions exist
     measurements = regionprops(lesions, 'Area', 'Centroid', 'Perimeter');
-    if (size(measurements, 1) == 0)
+    if (numel(measurements) == 0)
         features = zeros(1, 16);
     else
         
@@ -38,15 +35,20 @@ function [ features ] = getlesionsfeatures( lesions, opticDisc )
 
         % 9. 10. Distance from optic disc mean and deviation
         opticDiscMeasurements = regionprops(opticDisc, 'Centroid');
-        opticDiscCenter = opticDiscMeasurements.Centroid;
+        opticDiscCenter = [opticDiscMeasurements.Centroid];
         allOpticDistances = zeros(1, nLesions);
-        for i = 1 : nLesions
-            allOpticDistances(i) = sqrt((opticDiscCenter(1) - allCentroids(2 * (i - 1) + 1)) ^ 2 ...
-                                   + (opticDiscCenter(2) - allCentroids(2 * (i - 1) + 2)) ^ 2);
+        if (numel(opticDiscCenter) == 0)
+            opticDistanceMean = 0;
+            opticDistanceStd = 0;
+        else
+            for i = 1 : nLesions
+                allOpticDistances(i) = sqrt((opticDiscCenter(1) - allCentroids(2 * (i - 1) + 1)) ^ 2 ...
+                                       + (opticDiscCenter(2) - allCentroids(2 * (i - 1) + 2)) ^ 2);
+            end
+            opticDistanceMean = mean(allOpticDistances);
+            opticDistanceStd = std(allOpticDistances);
         end
-        opticDistanceMean = mean(allDistances);
-        opticDistanceStd = std(allDistances);
-        
+            
         % 11. 12. Weighted distance from center mean and deviation
         allWeightedDistances = allDistances .* allAreas;
         weightedDistanceMean = mean(allWeightedDistances);

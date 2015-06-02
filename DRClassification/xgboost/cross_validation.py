@@ -1,4 +1,4 @@
-from sklearn.cross_validation import StratifiedKFold, KFold
+from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from skll.metrics import kappa
@@ -47,10 +47,10 @@ def evalerror(preds, dtrain):
 
 
 # Read data
-X, y = get_train_data('../features.csv', '../trainLabels.csv')
+X, y = get_train_data('../features_all.csv', '../trainLabels.csv')
 
 # Parameters space creation
-params = [[6], [0.3]]
+params = [[100], [0.08]]
 params_space = []
 for i in xrange(len(params[0])):
     for j in xrange(len(params[1])):
@@ -62,7 +62,7 @@ grid_best_iterations = []
 for params in params_space:
 
     # Cross validation
-    skf = KFold(len(y), n_folds=4, shuffle=True)  # StratifiedKFold(y, n_folds=4)
+    skf = StratifiedKFold(y, n_folds=8)
     errors = []
     best_iterations = []
     for train, test in skf:
@@ -79,8 +79,8 @@ for params in params_space:
         n_rounds = 4000  # Just a big number to trigger early stopping and best iteration
 
         # Train
-        bst = xgb.train(param, xg_train, n_rounds, [(xg_train, 'train'), (xg_test, 'test')], #logregobj, evalerror,
-                        early_stopping_rounds=2)
+        bst = xgb.train(param, xg_train, n_rounds, [(xg_train, 'train'), (xg_test, 'test')],  # logregobj, evalerror,
+                        early_stopping_rounds=4)
 
         # Predict
         predictions = bst.predict(xg_test)

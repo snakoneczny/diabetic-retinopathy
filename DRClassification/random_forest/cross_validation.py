@@ -1,25 +1,26 @@
 from sklearn.ensemble import RandomForestClassifier as RandomForest
-from sklearn.cross_validation import StratifiedKFold, KFold
+from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from skll.metrics import kappa
 from utils import *
 
 # Read data
-X, y = get_train_data('../features.csv', '../trainLabels.csv')
+X, y = get_train_data('../features_all.csv', '../trainLabels.csv')
 
 # Parameters space creation
-params_space = [[100]]
+params_space = [[200]]
 
 # Grid search
 grid_errors = []
 for params in params_space:
 
     # Cross validation
-    skf = KFold(len(y), n_folds=4, shuffle=True)
+    skf = StratifiedKFold(y, n_folds=8)
+
     errors = []
-    best_iterations = []
     for train, test in skf:
+
         clf = RandomForest(n_estimators=params[0], n_jobs=2)
         clf.fit(X[train], y[train])
         predictions = clf.predict(X[test])
