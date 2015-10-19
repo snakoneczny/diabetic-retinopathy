@@ -6,7 +6,7 @@ A paper with full method description can be found
 
 ### Image processing
 
-Morphological image processing methods are used to extract features like exudates and red lesion which are characteristic for the disease.
+Morphological image processing methods are used to extract features like exudates and red lesion which characterise the disease.
 
 ### Machine learning
 
