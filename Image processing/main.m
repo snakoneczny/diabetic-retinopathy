@@ -14,7 +14,7 @@ toc
 
 %% Extract exudates from one image
 tic
-fileName = 'E:/Dev/CAD/Diabetic Retinopathy/train/225_left.jpeg';    
+fileName = 'E:/Dev/CAD/Diabetic Retinopathy/train/16_right.jpeg';    
 % Read image
 retinaRGB = imread(fileName);
 % Resize image
@@ -29,7 +29,7 @@ toc
 
 %% Postprocess one image
 tic
-fileName = 'E:/Dev/CAD/Diabetic Retinopathy/train/225_left.jpeg';  % 225_left
+fileName = 'E:/Dev/CAD/Diabetic Retinopathy/train/16_left.jpeg';  % 225_left
 % Read images
 retina = imread(fileName);
 exudates = imread(strrep(fileName, '.jpeg', '_exudates.png'));
@@ -63,19 +63,19 @@ featuresRedLesions = getlesionsfeatures(redLesions, opticDisc)
 opticDistance = getopticdistance(opticDisc)
 
 %% Extract all optic discs and artifacts and save them as files
-parpool(2);  % Set workers for paraller computations
-tic
+% parpool(2);  % Set workers for paraller computations
+% tic
 
 % List all images
-directory = 'E:/Dev/CAD/Diabetic Retinopathy/train/';
+directory = 'E:/Dev/CAD/Diabetic Retinopathy/test/';
 filesLeft = dir(strcat(directory, '*_left.jpeg'));
 filesRight = dir(strcat(directory, '*_right.jpeg'));
 files = [filesLeft; filesRight];
 % For each image
 nFiles = length(files);
-for i = 1  : nFiles
+for i = 30000  : nFiles
     fileName = strcat(directory, files(i).name);
-    fprintf('Processing image %i / %i, %s.\n', i, nFiles, fileName);
+    fprintf('Optic disc and artifacts, processing image %i / %i, %s.\n', i, nFiles, fileName);
     
     % Read image
     retinaRGB = imread(fileName);
@@ -93,23 +93,23 @@ for i = 1  : nFiles
     imwrite(artifactsMask, strrep(fileName, '.jpeg', '_artifacts_mask.png'))
     
 end
-toc
-delete(gcp);  % Close threads pool
+% toc
+% delete(gcp);  % Close threads pool
 
 %% Extract all exudates and save them as files
-parpool(2);  % Set workers for paraller computations
-tic
+% parpool(2);  % Set workers for paraller computations
+% tic
 
 % List all images
-directory = 'E:/Dev/CAD/Diabetic Retinopathy/train/';
+directory = 'E:/Dev/CAD/Diabetic Retinopathy/test/';
 filesLeft = dir(strcat(directory, '*_left.jpeg'));
 filesRight = dir(strcat(directory, '*_right.jpeg'));
 files = [filesLeft; filesRight];
 % For each image
 nFiles = length(files);
-for i = 1 : nFiles
+for i = 25000 : nFiles
     fileName = strcat(directory, files(i).name);
-    fprintf('Processing image %i / %i, %s.\n', i, nFiles, fileName);
+    fprintf('Exudates, processing image %i / %i, %s.\n', i, nFiles, fileName);
     
     % Read image
     retinaRGB = imread(fileName);
@@ -126,10 +126,10 @@ for i = 1 : nFiles
     imwrite(exudatesMask, strrep(fileName, '.jpeg', '_exudates.png'))
     
 end
-toc
-delete(gcp);  % Close threads pool
+% toc
+% delete(gcp);  % Close threads pool
 
-%% Extract all features and save them to file
+%% Extract all features from train data and save them to file
 parpool(2);  % Set workers for paraller computations
 tic
 
@@ -145,7 +145,7 @@ features = zeros(nImages, nFeatures);
 % For each image
 for i = 1 : nImages
     if (mod(i, 100) == 0)
-        fprintf('Processing image %i / %i, %s.\n', i, nImages, names{i});
+        fprintf('Features train, processing image %i / %i, %s.\n', i, nImages, names{i});
     end
     
     % Read images
@@ -153,14 +153,14 @@ for i = 1 : nImages
     opticDisc = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/train/', names{i}, '_optic_disc_mask.png'));
     redLesions = imread(strcat('E:/Dropbox/Diabetic Retinopathy/red_lesions_all/', names{i}, '_redlesion.png'));
     
-    % Make the images logical
+    % Make the images logicalp
     opticDisc = im2bw(opticDisc, 0.1);
     redLesions = im2bw(redLesions, 0.1);
     
     % Exudates postprocessing
-    retina = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/train/', names{i}, '.jpeg'));
-    exudatesMaxSize = 160;
-    exudates = postprocessing(exudates, retina, exudatesMaxSize);
+    % retina = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/train/', names{i}, '.jpeg'));
+    % exudatesMaxSize = 160;
+    % exudates = postprocessing(exudates, retina, exudatesMaxSize);
     
     % Features 1 - 11 for exudates
     featuresExudates = getlesionsfeatures(exudates, opticDisc);
@@ -179,3 +179,68 @@ csvwrite('D:/CAD/diabetic-retinopathy/DRClassification/features_all_postprocesse
 
 toc
 delete(gcp);  % Close threads pool
+
+%% Extract all features from test data and save them to file
+% parpool(2);  % Set workers for paraller computations
+tic
+
+% List all images
+directory = 'E:/Dev/CAD/Diabetic Retinopathy/test/';
+filesLeft = dir(strcat(directory, '*_left.jpeg'));
+filesRight = dir(strcat(directory, '*_right.jpeg'));
+files = [filesLeft; filesRight];
+
+% Get all file names
+% names = readtable('D:/CAD/diabetic-retinopathy/DRClassification/trainLabels.csv', ...
+%                   'Delimiter', ',', 'ReadVariableNames', true);
+% names = names.image;
+
+% Initialize features matrix
+nImages = numel(files);
+nFeatures = 33;
+features = zeros(nImages, nFeatures);
+names = cell(nImages, 1);
+
+% For each image
+for i = 1 : nImages
+    fileName = strcat(directory, files(i).name);
+    fileNameShort = strrep(files(i).name, '.jpeg', '');
+    
+    if (mod(i, 100) == 0)
+        fprintf('Features test, processing image %i / %i, %s.\n', i, nImages, fileName);
+    end
+    
+    % Read images
+    exudates = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/test/', fileNameShort, '_exudates.png'));
+    opticDisc = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/test/', fileNameShort, '_optic_disc_mask.png'));
+    redLesions = imread(strcat('E:/Dev/CAD/Diabetic Retinopathy/red_lesions_test/', fileNameShort, '_redlesion.png'));
+    
+    % Make the images logicalp
+    opticDisc = im2bw(opticDisc, 0.1);
+    redLesions = im2bw(redLesions, 0.1);
+    
+    % Features 1 - 11 for exudates
+    featuresExudates = getlesionsfeatures(exudates, opticDisc);
+    % Features 1 - 11 (12 - 22) for red lesions
+    featuresRedLesions = getlesionsfeatures(redLesions, opticDisc);
+    % 12. Optic disc distance from center
+    opticDistance = getopticdistance(opticDisc);
+    
+    % Save features into matrix and names intro array
+    features(i,:) = [featuresRedLesions, featuresExudates, opticDistance];
+    names{i} = fileNameShort;
+    
+end
+
+% Write csv file with features
+csvwrite('D:/CAD/diabetic-retinopathy/DRClassification/features_test.csv', features);
+
+% Write csv file with names
+fid = fopen('D:/CAD/diabetic-retinopathy/DRClassification/names.csv', 'w') ;
+for i = 1 : nImages
+    fprintf(fid, '%s\n', names{i, end});
+end
+fclose(fid) ;
+
+toc
+% delete(gcp);  % Close threads pool

@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://D:/Natural Computing/CellularAutomata/.idea/CellularAutomata.iml" filepath="D:/Natural Computing/CellularAutomata/.idea/CellularAutomata.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/DRClassification.iml" filepath="$PROJECT_DIR$/.idea/DRClassification.iml" />
     </modules>
   </component>

@@ -20,11 +20,11 @@ function [ exudatesPostprocessed ] = postprocessing( exudates, retina, exudatesM
     exudatesPostprocessed = ismember(labeledExudates, exudatesValues);
 
     % Remove circular shape around retina
-    retinaMask = im2bw(retina, 0.2);
-    retinaMask = imfill(retinaMask, 'holes');
-    se = strel('disk', 16);
-    retinaMask = imerode(retinaMask, se);
-    exudatesPostprocessed = exudatesPostprocessed .* retinaMask;
+    % retinaMask = im2bw(retina, 0.2);
+    % retinaMask = imfill(retinaMask, 'holes');
+    % se = strel('disk', 16);
+    % retinaMask = imerode(retinaMask, se);
+    % exudatesPostprocessed = exudatesPostprocessed .* retinaMask;
 
     % Overlay new exudates mask on the original image
     % subplot(1, 2, 2), imshow(retina, 'InitialMag', 'fit'), title('After postprocessing')

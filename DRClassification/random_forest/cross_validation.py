@@ -3,7 +3,11 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from skll.metrics import kappa
-from utils import *
+
+from xgboost.utils import *
+
+
+
 
 # Read data
 X, y = get_train_data('../features_all.csv', '../trainLabels.csv')

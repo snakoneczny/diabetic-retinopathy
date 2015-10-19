@@ -1,9 +1,13 @@
+import sys
+
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from skll.metrics import kappa
+from sklearn.preprocessing import MinMaxScaler
+
 from utils import *
-import sys
+
 
 sys.path.append('D:\\libs\\xgboost\\wrapper')
 import xgboost as xgb
@@ -45,12 +49,12 @@ def evalerror(preds, dtrain):
     # since preds are margin(before logistic transformation, cutoff at 0)
     return 'kappa', 1.0 - kappa(labels, preds, weights='quadratic')
 
-
 # Read data
-X, y = get_train_data('../features_all.csv', '../trainLabels.csv')
+X, y = get_train_data('../features_train.csv', '../trainLabels.csv')
 
 # Parameters space creation
-params = [[100], [0.08]]
+# params = [[100], [0.08]]
+params = [[8], [0.1]]
 params_space = []
 for i in xrange(len(params[0])):
     for j in xrange(len(params[1])):
@@ -62,30 +66,44 @@ grid_best_iterations = []
 for params in params_space:
 
     # Cross validation
-    skf = StratifiedKFold(y, n_folds=8)
+    skf = StratifiedKFold(y, n_folds=10)
     errors = []
     best_iterations = []
     for train, test in skf:
+
         train_X = X[train]
         train_Y = y[train]
         test_X = X[test]
         test_Y = y[test]
+
+        # train_X, train_Y = balance_all(train_X, train_Y)
+
         xg_train = xgb.DMatrix(train_X, label=train_Y)
         xg_test = xgb.DMatrix(test_X, label=test_Y)
 
         # Setup parameters
-        param = {'silent': 1, 'nthread': 2, 'objective': 'multi:softmax', 'num_class': 5, 'eval_metric': 'mlogloss',
+        param = {'silent': 1, 'nthread': 2, 'objective': 'reg:linear', #'eval_metric': 'mlogloss', 'num_class': 5,
                  'max_depth': params[0], 'eta': params[1]}
         n_rounds = 4000  # Just a big number to trigger early stopping and best iteration
 
         # Train
         bst = xgb.train(param, xg_train, n_rounds, [(xg_train, 'train'), (xg_test, 'test')],  # logregobj, evalerror,
-                        early_stopping_rounds=4)
+                        early_stopping_rounds=20)
 
         # Predict
         predictions = bst.predict(xg_test)
-        # Get error and best iteration
+        print min(predictions), max(predictions)
 
+        # prdictions = MinMaxScaler(feature_range=(0, max(predictions)), copy=True).fit_transform([predictions])
+        # predictions = predictions.clip(0, 4)
+        # print min(predictions), max(predictions)
+
+        predictions = np.round(predictions)
+        print min(predictions)
+        print max(predictions)
+
+
+        # Get error and best iteration
         # TODO: delete
         # print 'predictions'
         # print max(predictions)

@@ -37,7 +37,7 @@ function exudatesMask = getexudates (retinaRGB, opticDiscMask, artifactsMask, op
     %% Create region of interest
     retinaMask = im2bw(I, 0.2);
     retinaMask = imfill(retinaMask, 'holes');
-    se = strel('disk', 10);
+    se = strel('disk', 16);
     retinaMask = imerode(retinaMask, se);
     % subplot(1, 2, 1), imshow(I), title('Original image');
     % subplot(1, 2, 2), imshow(I, 'InitialMag', 'fit')
