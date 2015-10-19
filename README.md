@@ -4,7 +4,7 @@ Solution for Kaggle competition. System for Diabetic Retinopathy classification 
 
 ### Image processing
 
-Image processing methods are used to extract features characteristic for the disease like exudates and red lesions.
+Image processing methods are used to extract features like exudates and red lesion which are characteristic for the disease.
 
 ### Machine learning
 
