@@ -1,6 +1,6 @@
 # Diabetic Retinopathy
 
-Solution for Kaggle competition. System for Diabetic Retinopathy classification based on an image of human eye.
+A solution for Kaggle competition. It is a system for Diabetic Retinopathy classification based on an image of human eye.
 A paper with full method description can be found
 [here](https://www.dropbox.com/s/2q6q3yok14zkaq2/diabetic%20retinopathy%20report.pdf?dl=0).
 
